@@ -113,6 +113,9 @@ CREATE POLICY edarms_tenant_scope ON edarms_tenant
  WITH CHECK(id = NULLIF(current_setting('edarms.tenant_id',true),'')::uuid);
 ALTER TABLE legal_hold ADD CONSTRAINT uq_legal_hold_tenant_case
  UNIQUE (tenant_id,case_ref);
+ALTER TABLE legal_hold ADD CONSTRAINT ck_hold_independent_release
+ CHECK (status <> 'RELEASED' OR (approved_by IS NOT NULL
+  AND approved_by <> owner_sub AND released_at IS NOT NULL));
     """)
 
     # Fail closed until independent legally authorized destruction is built.
@@ -139,6 +142,9 @@ CREATE OR REPLACE FUNCTION edarms_protect_record() RETURNS trigger AS $$
 BEGIN
  IF TG_OP = 'DELETE' THEN
   RAISE EXCEPTION 'Record deletion requires a separately approved disposal engine';
+ END IF;
+ IF NEW.tenant_id IS DISTINCT FROM OLD.tenant_id THEN
+  RAISE EXCEPTION 'Record tenant cannot be changed';
  END IF;
  IF OLD.status <> 'DRAFT' AND (
   NEW.title IS DISTINCT FROM OLD.title
