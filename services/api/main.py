@@ -1,5 +1,8 @@
 """DRM Bank: minimal Sprint 0 PoC API. NEVER handle real banking records."""
 from typing import Annotated, Literal
+from uuid import UUID
+from fastapi import Header, Query
+from services.workspace.store import actor_workspace, list_tasks, create_task, decide_task
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -59,9 +62,6 @@ def verify_audit(
 
 
 # EDARMS WP1: generic PoC approval inbox. Does not approve any records/destruction.
-from uuid import UUID
-from fastapi import Header, Query
-from services.workspace.store import actor_workspace, list_tasks, create_task, decide_task
 
 
 class TaskCreateIn(BaseModel):
