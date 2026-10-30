@@ -89,6 +89,20 @@ def test_legal_hold_multi_scope_and_independent_release(sandbox_db_role):
         retention_preview(bootstrap, tenant_a, record_id, "records")
     assert unsafe.value.status_code == 503
 
+    # Exact runtime role cannot read the unscoped legacy audit ledger.
+    with psycopg.connect(runtime) as limited:
+        with limited.transaction():
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                with limited.transaction():
+                    limited.execute("SELECT count(*) FROM audit_event")
+        with limited.transaction():
+            limited.execute(
+                "SELECT set_config('edarms.tenant_id',%s,true)", (str(tenant_b),)
+            )
+            assert limited.execute(
+                "SELECT count(*) FROM record"
+            ).fetchone()[0] == 0
+
     preview = retention_preview(runtime, tenant_a, record_id, "records")
     assert preview["state"] == "APPRAISAL_REVIEW_ONLY"
     assert preview["destruction_authorized"] is False
