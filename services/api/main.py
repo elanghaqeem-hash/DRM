@@ -1,5 +1,9 @@
 """DRM Bank: minimal Sprint 0 PoC API. NEVER handle real banking records."""
 from typing import Annotated, Literal
+from pathlib import Path
+from urllib.parse import urlsplit
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from uuid import UUID
 from fastapi import Header, Query
 from services.workspace.store import actor_workspace, list_tasks, create_task, decide_task
@@ -117,3 +121,43 @@ def workspace_decide_task(
 ):
     return decide_task(settings.database_url, data.tenant_id, task_id, actor["sub"],
                        data.decision, data.expected_version, data.reason)
+
+
+# Static PoC shell contains no secrets or synthetic bank records.
+# Authenticated actions still occur exclusively through the API above.
+WEB_ROOT = Path(__file__).resolve().parents[2] / "apps" / "web"
+app.mount("/static", StaticFiles(directory=WEB_ROOT), name="edarms-static")
+
+
+@app.get("/app", include_in_schema=False)
+def poc_web_app():
+    return FileResponse(WEB_ROOT / "index.html", media_type="text/html")
+
+
+@app.get("/v1/public/oidc-config", tags=["system"])
+def public_oidc_config(settings: Annotated[Settings, Depends(get_settings)]):
+    return {"issuer": settings.oidc_issuer.rstrip("/"),
+            "client_id": settings.oidc_web_client_id}
+
+
+@app.middleware("http")
+async def poc_web_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path == "/app" or request.url.path.startswith("/static/"):
+        # Only own assets/scripts; Keycloak origin is allowed for OIDC token exchange.
+        try:
+            issuer_origin = urlsplit(get_settings().oidc_issuer)
+            connect_origin = f"{issuer_origin.scheme}://{issuer_origin.netloc}"
+        except Exception:
+            connect_origin = "'none'"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; "
+            "script-src 'self'; style-src 'self'; img-src 'self' data:; "
+            f"connect-src 'self' {connect_origin}; "
+            "form-action 'self'"
+        )
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Cache-Control"] = "no-store"
+    return response
