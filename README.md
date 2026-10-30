@@ -64,3 +64,20 @@ is explicitly verified, its status is **NOT RUN / NOT VERIFIED**.
 Sprint 1: CLS/MTD/CAP/VER with actual secure ingest + version locking.
 Sprint 2: ACC/ABAC/SRC. Sprint 3: RET/LGH. Sprint 4: PHY/LON.
 Sprint 5: VIT/PDP/ADM/SIEM. Sprint 6: UAT, hardening, DR, exit exports.
+
+
+## EDARMS Enterprise WP0–WP1 — 2026-10-30
+
+Canonical design: [EDARMS Master Prompt](docs/prompts/MASTER-PROMPT-EDARMS-ENTERPRISE-2026-10-30.md), [verified baseline](docs/audit/2026-10-30-verified-wp0-baseline.md), [BRD draft](docs/BRD/EDARMS-BRD.md), [regulatory VERIFY matrix](docs/regulatory/control-matrix.md), [conceptual ERD](docs/architecture/ERD.md), [62-submenu / 414-button inventory](docs/UX/navigation-and-action-registry.md), [330-slot UAT skeleton](docs/UAT/master-scenarios.md).
+
+WP0: technical inventory recorded; Bank/legal review is PENDING. WP1: tenant + membership + generic approval task schema and append-only events, with PostgreSQL FORCE RLS, idempotency, optimistic version checks, maker-checker and authenticated API. No Bank tenants or real identities seeded.
+
+Actual new API (valid signed OIDC JWT + enabled DB membership required):
+- GET /v1/workspace/me?tenant_id=UUID — scoped subject and task abilities.
+- GET /v1/workspace/tasks?tenant_id=UUID — tasks made by/assigned to subject.
+- POST /v1/workspace/tasks — tenant_id,title,assigned_to and mandatory Idempotency-Key header (8–128 chars).
+- POST /v1/workspace/tasks/{id}/decision — tenant_id,decision,expected_version,reason (rejection reason mandatory).
+
+These generic review tasks cannot approve legal holds, record declaration or destruction. API runs against disposable PoC PostgreSQL, and requires manually provisioned synthetic tenant/member fixture and configured test IdP; migration does not create an unsafe default login. Legacy record tables and audit endpoint remain unscoped and **NOT SAFE for real multi-bank records**. No functional enterprise web UI yet, no approved Bank JRA, AV, KMS/WORM, backup restore or production.
+
+Run in synthetic sandbox only: alembic -c infra/alembic.ini upgrade head; pytest -m 'not integration' -q; pytest -m integration -q against disposable DB. Follow [release gates](docs/RELEASE-GATES.md) before any live Bank deployment.
