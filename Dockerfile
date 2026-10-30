@@ -5,6 +5,7 @@ COPY pyproject.toml ./
 COPY services ./services
 COPY infra/migrations ./infra/migrations
 COPY infra/alembic.ini ./infra/alembic.ini
+COPY infra/__init__.py ./infra/__init__.py
 COPY infra/scripts ./infra/scripts
 COPY apps/web ./apps/web
 RUN pip install --no-cache-dir . && useradd --system --uid 10001 drm
