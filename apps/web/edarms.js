@@ -127,6 +127,8 @@ async function openWorkspace() {
   identity = data;
   el("identity").textContent = data.subject + " · " + data.roles.join(", ");
   el("create-panel").hidden = !data.abilities.task_create;
+  el("archive-control-panel").hidden = !data.roles.some((role) => ["records_manager", "records_officer", "legal_officer", "auditor"].includes(role));
+  el("legal-hold-panel").hidden = !data.roles.includes("legal_officer");
   el("work-panels").hidden = false;
   await loadTasks();
   feedback("Akses organisasi terverifikasi. Fitur yang tersedia hanya workflow tugas PoC.");
@@ -253,3 +255,72 @@ el("create-form").addEventListener("submit", (e) => { e.preventDefault(); create
 el("status-filter").addEventListener("change", () => { loadTasks().catch(err => feedback(err.message, true)); });
 el("refresh").addEventListener("click", () => { loadTasks().then(() => feedback("Daftar tugas berhasil dimuat ulang.")).catch(e => feedback(e.message, true)); });
 handleCallback().catch(e => { feedback(e.message, true); toggleView(false); });
+
+function requiredUuid(value) {
+  const candidate = value.trim();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(candidate)) {
+    throw new Error("ID arsip/hold wajib berbentuk UUID");
+  }
+  return candidate;
+}
+async function previewArchive(event) {
+  event.preventDefault();
+  const button = el("check-retention");
+  busy(button, true);
+  try {
+    const record = requiredUuid(el("control-record-id").value);
+    const query = new URLSearchParams({ tenant_id: tenantId });
+    const result = await api("/v1/archives/" + encodeURIComponent(record) +
+      "/retention-preview?" + query.toString());
+    el("retention-result").textContent =
+      "Status: " + result.state + " · Alasan: " +
+      (result.reasons.length ? result.reasons.join(", ") : "Siap ditinjau manusia") +
+      " · Pemusnahan berizin: TIDAK";
+    feedback("Hasil retensi berasal dari aturan backend, bukan angka simulasi dashboard.");
+  } catch (error) { feedback(error.message, true); }
+  finally { busy(button, false); }
+}
+async function submitLegalHold(event) {
+  event.preventDefault();
+  const button = el("apply-hold");
+  busy(button, true);
+  try {
+    const record = requiredUuid(el("control-record-id").value);
+    const response = await api("/v1/archives/" + encodeURIComponent(record) + "/holds", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: tenantId,
+        case_ref: el("hold-case").value.trim(),
+        legal_basis: el("hold-basis").value.trim(),
+        reason: el("hold-reason").value.trim(),
+      }),
+    });
+    el("release-hold-id").value = response.hold_id;
+    el("hold-form").reset();
+    feedback("Hold ACTIVE tersimpan. Pelepasan memerlukan petugas Legal yang berbeda.");
+    await previewArchive(new Event("submit"));
+  } catch (error) { feedback(error.message, true); }
+  finally { busy(button, false); }
+}
+async function submitHoldRelease(event) {
+  event.preventDefault();
+  const button = el("release-hold");
+  busy(button, true);
+  try {
+    const hold = requiredUuid(el("release-hold-id").value);
+    if (!confirm("Konfirmasi pelepasan hold oleh pemeriksa Legal independen?")) return;
+    await api("/v1/legal-holds/" + encodeURIComponent(hold) + "/release", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: tenantId,
+        reason: el("release-reason").value.trim(),
+      }),
+    });
+    el("release-form").reset();
+    feedback("Hold dilepaskan dengan jejak audit. Hold lainnya tetap berlaku.");
+  } catch (error) { feedback(error.message, true); }
+  finally { busy(button, false); }
+}
+el("retention-form").addEventListener("submit", previewArchive);
+el("hold-form").addEventListener("submit", submitLegalHold);
+el("release-form").addEventListener("submit", submitHoldRelease);
