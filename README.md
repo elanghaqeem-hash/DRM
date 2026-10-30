@@ -126,3 +126,18 @@ Run in synthetic sandbox only: alembic -c infra/alembic.ini upgrade head; pytest
 ### Update: real browser workspace subset (WP1 PoC)
 
 An authenticated **limited** workspace UI is now served at `/app` with OIDC PKCE test login, left collapsible sidebar, real task list/create/approve/reject and no dummy KPIs. Documentation: [apps/web/README.md](apps/web/README.md); evidence: [WP0/WP1 execution report](docs/reports/2026-10-30-WP0-WP1-execution-report.md). This **supersedes earlier statements saying no UI exists**: only the generic task inbox UI is built. All remaining 62-menu enterprise records functions and Bank SSO/session revocation remain unimplemented. Current code is **not** live in production.
+
+
+## 31 October — Additional security hardening (PoC only)
+
+Execution evidence: [WP2 security hardening](docs/reports/2026-10-31-WP2-security-hardening.md), [draft PR #3](https://github.com/elanghaqeem-hash/DRM/pull/3).
+
+- Alembic 0003: **18 legacy archive business tables**, mandatory tenant, FORCE RLS, cross-tenant composite keys and immutable version/record controls. Migration blocks nonempty legacy tables; approved backfill required separately.
+- JWT OIDC Bank-specific `acr` gate is configurable; **real Bank SSO/MFA not integrated or UAT verified**.
+- Retention read-only `GET /v1/archives/{id}/retention-preview` and `POST /v1/archives/{id}/holds` / `POST /v1/legal-holds/{id}/release` require signed token, tenant DB membership, safe nonowner DB account; maker can't release own hold.
+- New PoC UI allows role-scoped retention preview/hold actions for synthetic records; no disposal execution.
+- Fail-closed ClamAV + S3 private COMPLIANCE lock/KMS adapter and offline backup manifest/isolated restore runner are **code paths only** until Bank infrastructure is verified; never claim Bank WORM/AV/DR green.
+- Docker Compose bootstrap now generates separate application DB credentials, provisions restricted role after Alembic migration; runtime API no longer receives admin DB password. **An old .env must be safely migrated manually, not overwritten.**
+- Existing legacy audit endpoint is retired by default; use tenant audit/control event model; independent WORM/SIEM gate outstanding.
+- **No 62-menu completion, Bank-approved JRA, real Bank data, live staging or production.**
+
