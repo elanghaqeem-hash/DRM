@@ -3,7 +3,9 @@
 No destruction or JRA publication endpoint. DB runtime account must be a
 non-superuser, non-BYPASSRLS identity distinct from migration/table owner.
 """
-from datetime import date, timezone, datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import json
 from uuid import UUID
 
 import psycopg
@@ -84,7 +86,7 @@ def retention_preview(database_url: str, tenant_id: UUID, record_id: UUID, actor
                     unresolved_query_holds=holds["dynamic"],
                     permanent=row["vital_flag"],
                 ),
-                date.today(),
+                datetime.now(ZoneInfo("Asia/Jakarta")).date(),
             )
             # Event payload only records reason codes; no confidential metadata.
             conn.execute(
@@ -92,7 +94,7 @@ def retention_preview(database_url: str, tenant_id: UUID, record_id: UUID, actor
                    (tenant_id,record_id,actor_sub,event_type,details)
                    VALUES (%s,%s,%s,'RETENTION_PREVIEW',%s::jsonb)""",
                 (tenant_id, record_id, actor,
-                 __import__("json").dumps({"state": result["state"],
+                 json.dumps({"state": result["state"],
                                           "reasons": result["reasons"]})),
             )
             return {"record_id": str(record_id), **result}
