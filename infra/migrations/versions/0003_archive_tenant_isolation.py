@@ -95,6 +95,26 @@ def upgrade():
     op.execute("ALTER TABLE retention_rule ADD CONSTRAINT uq_rule_tenant_code_version "
                "UNIQUE (tenant_id,code,version)")
 
+    # Bank Legal roles are provisioned only by controlled IAM/onboarding.
+    op.execute("""
+ALTER TABLE edarms_membership DROP CONSTRAINT edarms_membership_role_code_check;
+ALTER TABLE edarms_membership ADD CONSTRAINT edarms_membership_role_code_check
+ CHECK(role_code IN ('records_officer','records_manager','approver','auditor',
+                     'legal_officer','compliance_officer'));
+ALTER TABLE edarms_membership ENABLE ROW LEVEL SECURITY;
+ALTER TABLE edarms_membership FORCE ROW LEVEL SECURITY;
+CREATE POLICY edarms_membership_tenant ON edarms_membership
+ USING(tenant_id = NULLIF(current_setting('edarms.tenant_id',true),'')::uuid)
+ WITH CHECK(tenant_id = NULLIF(current_setting('edarms.tenant_id',true),'')::uuid);
+ALTER TABLE edarms_tenant ENABLE ROW LEVEL SECURITY;
+ALTER TABLE edarms_tenant FORCE ROW LEVEL SECURITY;
+CREATE POLICY edarms_tenant_scope ON edarms_tenant
+ USING(id = NULLIF(current_setting('edarms.tenant_id',true),'')::uuid)
+ WITH CHECK(id = NULLIF(current_setting('edarms.tenant_id',true),'')::uuid);
+ALTER TABLE legal_hold ADD CONSTRAINT uq_legal_hold_tenant_case
+ UNIQUE (tenant_id,case_ref);
+    """)
+
     # The actual object bytes are stored elsewhere. Record versions carry
     # immutable checksum references; changing a row is not a valid correction.
     op.execute("""
@@ -149,6 +169,25 @@ CREATE POLICY archive_control_event_tenant ON edarms_archive_control_event
  WITH CHECK (tenant_id = NULLIF(current_setting('edarms.tenant_id',true),'')::uuid);
 CREATE TRIGGER trg_archive_control_event_immutable
 BEFORE UPDATE OR DELETE ON edarms_archive_control_event
+FOR EACH ROW EXECUTE FUNCTION edarms_reject_event_mutation();
+CREATE TABLE edarms_legal_hold_event (
+ id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+ tenant_id uuid NOT NULL REFERENCES edarms_tenant(id),
+ hold_id uuid NOT NULL,
+ actor_sub text NOT NULL,
+ action text NOT NULL CHECK(action IN ('APPLIED','RELEASED')),
+ reason text NOT NULL,
+ occurred_at timestamptz NOT NULL DEFAULT now(),
+ CONSTRAINT fk_edarms_hold_event_tenant FOREIGN KEY (tenant_id,hold_id)
+ REFERENCES legal_hold(tenant_id,id)
+);
+ALTER TABLE edarms_legal_hold_event ENABLE ROW LEVEL SECURITY;
+ALTER TABLE edarms_legal_hold_event FORCE ROW LEVEL SECURITY;
+CREATE POLICY edarms_hold_event_scope ON edarms_legal_hold_event
+ USING(tenant_id = NULLIF(current_setting('edarms.tenant_id',true),'')::uuid)
+ WITH CHECK(tenant_id = NULLIF(current_setting('edarms.tenant_id',true),'')::uuid);
+CREATE TRIGGER trg_edarms_legal_hold_event_immutable
+BEFORE UPDATE OR DELETE ON edarms_legal_hold_event
 FOR EACH ROW EXECUTE FUNCTION edarms_reject_event_mutation();
     """)
 
