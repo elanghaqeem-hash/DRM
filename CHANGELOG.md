@@ -50,3 +50,10 @@ Semua perubahan penting proyek Digital Records Management dicatat dalam berkas i
 - Added domain and PostgreSQL integration tests; corrected Gitleaks checkout history issue. CI result must be observed before treating gate as PASS.
 - Not done: UI/UX routes and 62 working screens, Bank IAM/MFA, tenant retrofit of legacy record/audit, AV/object storage, Bank JRA/legal hold/disposal, production and restore drill.
 - Bank parameters remain TBD-BANK / VERIFY, WP0 Bank approval PENDING.
+
+
+### WP1 browser workspace and CI gates — 30 October 2026
+- Added `/app` FastAPI-served responsive PoC UI with accessible collapsible sidebar, real tenant-scoped generic task operations and PKCE Keycloak test client.
+- Extended CI to validate JS syntax and JSON realm; added UI smoke tests. On GitHub Actions run 41031409696: 31 unit/non-integration tests PASS, 2 PostgreSQL integration tests PASS, Ruff/Bandit/SCA/SBOM/Gitleaks PASS.
+- Gitleaks reviewed false-positive fingerprint is tightly documented; real credentials still prohibited. RLS validated using non-BYPASSRLS read role; actual PoC owner superuser remains a production gate.
+- Added WP0/WP1 evidence and open-blocker report. Full Bank IdP, secure server logout, 62 menu actions, 330 UAT execution, AV/WORM/DR/retention engine, and production are NOT COMPLETE.
