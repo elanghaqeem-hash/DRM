@@ -115,6 +115,7 @@ def test_legal_hold_multi_scope_and_independent_release(sandbox_db_role):
         runtime, tenant_a, record_id, "legal-checker",
         "case-b", "SYNTHETIC", "Synthetic regulator hold B",
     )
+    assert second["status"] == "ACTIVE"
     blocked = retention_preview(runtime, tenant_a, record_id, "records")
     assert blocked["state"] == "BLOCKED"
     assert "ACTIVE_LEGAL_HOLD" in blocked["reasons"]
