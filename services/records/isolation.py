@@ -111,7 +111,7 @@ def apply_legal_hold(
             _tenant_role(conn, tenant_id, actor, {"legal_officer"})
             record = conn.execute(
                 """SELECT id,status FROM record
-                   WHERE id=%s AND tenant_id=%s FOR UPDATE""",
+                   WHERE id=%s AND tenant_id=%s""",
                 (record_id, tenant_id),
             ).fetchone()
             if not record:
