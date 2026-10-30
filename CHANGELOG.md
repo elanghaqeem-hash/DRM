@@ -1,16 +1,16 @@
 # Changelog — DRM
 
-Semua perubahan penting proyek Digital Records Management dicatat dalam berkas ini. Commit GitHub adalah bukti perubahan aktual.
-
-## [Unreleased]
-
+## [Unreleased] — 30 October 2026
 ### Added
-- Inisialisasi repository DRM sebagai sumber kebenaran pengembangan.
-- `README.md`: gambaran awal proyek, alur sinkronisasi perubahan dengan ChatGPT, status baseline, dan batasan.
-- `AGENTS.md`: prosedur kerja, pengujian, keamanan, commit, dan pelaporan semua agent.
-- `docs/decision-log.md`: catatan keputusan teknis untuk tata kelola pengembangan.
-
-### Pending
-- Import baseline aplikasi dan dokumen kebutuhan definitif.
-- Konfirmasi stack, rancangan database, lingkungan, dan strategi deployment.
-- Uji otomatis/CI, pengamanan branch, serta validasi modul secara bertahap.
+- Imported PoC Sprint 0 API, PostgreSQL migration, OIDC authentication, audit hash chain,
+  Docker Compose, migration workflow, tests, and CI configuration.
+- Open Bank parameter register, provisional traceability and release gates.
+- Sprint 1 control-driven pure record domain policies: classification approval,
+  maker-checker, mandatory metadata and immutable record statuses.
+### Known gaps
+- No end-to-end UAT, PostgreSQL smoke test in this execution environment,
+  production WORM, ABAC, KMS/HSM, or Bank-approved settings.
+- Referenced source proposal PDF has not yet been reconciled.
+- Final XLSX compliance matrix is not yet committed in this initial code import.
+### Prior history
+- Repository and AGENTS.md initialized as shared source of truth.

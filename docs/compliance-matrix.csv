@@ -1,0 +1,23 @@
+Reference,Category,Control,System Evidence,Test-ID,Status
+UU 43/2009; PP 28/2012,A,RET; VIT,Disposition certificate; vital recovery,UAT-VIT-01,VERIFY
+UU 8/1997,A,MTD; RET,Retention plan; legalization evidence,UAT-RET-03,VERIFY
+UU ITE jo UU 1/2024,A,VER; AUD,SHA-256; audit chain,UAT-VER-01,PARTIAL_POC
+PP 71/2019,A,NFR-SEC; RET,Secure electronic lifecycle,UAT-RET-03,PLANNED
+UU 27/2022 PDP,A,PDP; ACC,Data subject request decision,UAT-PDP-01,PLANNED
+PP 33/2026,A,PDP; ACC,Policy controls after effective date,UAT-PDP-01,VERIFY_EFFECTIVE_DATE
+POJK 44/2024 Rahasia Bank,A,CLS; SRC,Controlled external disclosure,UAT-SRC-01,PLANNED
+POJK 11/POJK.03/2022,A,NFR-RES; NFR-DR; TPM,Residency and DR evidence,UAT-VIT-01,PLANNED
+SEOJK 29/SEOJK.03/2022,A,AUD; SEC,SOC events and response evidence,TBD-BANK:UAT-AUD-SIEM,PLANNED
+POJK 17/2023,A,WFL; ACC,Maker checker evidence,UAT-RET-02,DOMAIN_STARTER
+POJK 8/2023,A,RET,Closure-trigger retention,UAT-RET-01,PLANNED
+POJK 22/2023,A,SRC,Customer document request ledger,UAT-SRC-01,PLANNED
+POJK 21/2023,A,VER; PSrE,Signature evidence,TBD-BANK:UAT-PSrE,PLANNED
+UU Perbankan jo UU 4/2023,A,ACC; SRC,Secret bank disclosure log,UAT-SRC-01,PLANNED
+Taxation laws and UU 10/2020,A,RET,Class-specific taxpayer document schedule,TBD-BANK:UAT-TAX,VERIFY
+BUMD rules,A,TBD-BANK:LOCAL_BUMD_RULES,Legal review,TBD-BANK:UAT-BUMD,OPEN
+Internal Bank policies,B,ALL,Signed configuration and authority matrix,TBD-BANK:UAT-POLICY,OPEN
+ISO 15489; ISO 16175; ISO 23081,C,CAP; MTD; CLS; RET,Record lifecycle tests,UAT-CAP-01,PARTIAL_POC
+ISO 14721; ISO 19005,C,VIT,PDF/A and fixity evidence,TBD-BANK:UAT-VIT-02,PLANNED
+ISO 27001; 27002; 27701,C,NFR-SEC,Audit and privacy controls,TBD-BANK:SECURITY,PLANNED
+ISO 22301; ISO 31000,C,NFR-DR,DR test and risk review,UAT-VIT-01,PLANNED
+OWASP ASVS,C,NFR-SEC,SAST DAST SCA pentest,TBD-BANK:SECURITY,PLANNED

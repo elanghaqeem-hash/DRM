@@ -1,0 +1,16 @@
+{
+  "realm": "drm-poc", "enabled": true, "displayName": "DRM Bank - PoC Only",
+  "registrationAllowed": false, "resetPasswordAllowed": true,
+  "clients": [{
+    "clientId": "drm-api", "enabled": true, "publicClient": false,
+    "serviceAccountsEnabled": true, "directAccessGrantsEnabled": false,
+    "standardFlowEnabled": false, "protocol": "openid-connect",
+    "defaultClientScopes": ["profile", "email", "roles"],
+    "attributes": {"use.refresh.tokens": "false"}
+  }],
+  "roles": {"realm": [
+    {"name": "auditor"}, {"name": "record_creator"},
+    {"name": "security_admin"}, {"name": "audit_writer"}
+  ]},
+  "users": []
+}
