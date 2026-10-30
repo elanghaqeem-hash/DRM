@@ -11,12 +11,15 @@ class Settings(BaseSettings):
     oidc_jwks_url: str = Field(min_length=5)
     oidc_audience: str = Field(min_length=1)
     oidc_web_client_id: str = Field(default="drm-web", min_length=3)
+    oidc_required_acr: str | None = None  # Bank-signed IdP assurance profile TBD-BANK
     oidc_enforce: bool = True
     drm_env: str = "poc"
     audit_anchor_required: bool = False
 
     @model_validator(mode="after")
     def validate_settings(self):
+        if self.drm_env != "poc" and not self.oidc_required_acr:
+            raise ValueError("Bank-approved OIDC ACR required outside PoC")
         if self.drm_env != "poc" and not self.oidc_enforce:
             raise ValueError("OIDC cannot be disabled outside PoC")
         if self.drm_env != "poc" and not self.audit_anchor_required:
