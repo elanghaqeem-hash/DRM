@@ -37,13 +37,21 @@ services:
     build: .
     user: root
     env_file: .env
-    command: ["alembic", "-c", "infra/alembic.ini", "upgrade", "head"]
+    command: ["sh", "-c", "alembic -c infra/alembic.ini upgrade head && python infra/scripts/provision_runtime.py"]
     depends_on:
       postgres: {condition: service_healthy}
     restart: "no"
   api:
     build: .
-    env_file: .env
+    environment:
+      DATABASE_URL: ${APP_DATABASE_URL:?Set APP_DATABASE_URL in .env}
+      OIDC_ISSUER: ${OIDC_ISSUER:?}
+      OIDC_JWKS_URL: ${OIDC_JWKS_URL:?}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:?}
+      OIDC_WEB_CLIENT_ID: ${OIDC_WEB_CLIENT_ID:-drm-web}
+      OIDC_ENFORCE: "true"
+      DRM_ENV: poc
+      AUDIT_ANCHOR_REQUIRED: "false"
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
       migrate: {condition: service_completed_successfully}

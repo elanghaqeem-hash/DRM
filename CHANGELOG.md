@@ -57,3 +57,14 @@ Semua perubahan penting proyek Digital Records Management dicatat dalam berkas i
 - Extended CI to validate JS syntax and JSON realm; added UI smoke tests. On GitHub Actions run 41031409696: 31 unit/non-integration tests PASS, 2 PostgreSQL integration tests PASS, Ruff/Bandit/SCA/SBOM/Gitleaks PASS.
 - Gitleaks reviewed false-positive fingerprint is tightly documented; real credentials still prohibited. RLS validated using non-BYPASSRLS read role; actual PoC owner superuser remains a production gate.
 - Added WP0/WP1 evidence and open-blocker report. Full Bank IdP, secure server logout, 62 menu actions, 330 UAT execution, AV/WORM/DR/retention engine, and production are NOT COMPLETE.
+
+
+### 2026-10-31 — WP2 / Security P0 controls (draft PR #3)
+- Tenant-isolated 18 legacy archive tables + composite FK/RLS, fail-closed nonempty migration, protected record versions, blocked direct disposal states.
+- Generic retention appraisal (never destruction authority), Legal apply/independent release multi-hold event model.
+- MFA OIDC ACR policy gate (Bank IdP still required); no production bypass.
+- ClamAV INSTREAM and private S3 COMPLIANCE WORM/KMS/fixity adapters with negative tests; no actual Bank storage/AV integration verified.
+- Restore manifest integrity checker and guarded isolated pg_restore runner (not a completed DR drill).
+- Dedicated non-owner database identity/provisioner, Docker/Compose packaged browser UI, added CI image build.
+- Added role-scoped F2/F3 PoC UI and 62-submenu inventory integrity test; **not all 62 operational**.
+- Existing global audit endpoint disabled unless explicitly activated in PoC. Full legal/retention sign-off, comprehensive UAT and release remain BLOCKED.

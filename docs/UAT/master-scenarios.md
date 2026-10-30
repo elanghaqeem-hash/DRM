@@ -35,3 +35,21 @@
 - P0-ADV-20 Mobile sidebar/keyboard/logout are accessible — pending test data, steps, UI/API/DB/audit assertion, evidence, sign-off; NOT RUN.
 
 For every scenario: test ID, priority, precondition, role, synthetic fixture, steps, expected UI/API/DB/audit, evidence path, result, defect, retest and Bank approver required. No default Bank retention fixture. See specific tests as they are built.
+
+
+## 2026-10-31 automated PoC evidence (not Bank UAT sign-off)
+
+These tests exercise **synthetic** fixtures only; their pass/fail must be verified from the corresponding GitHub CI run. None substitutes for the 330 Bank UAT scenarios:
+
+| File | Critical assertions | Classification |
+|---|---|---|
+| `tests/integration/test_archive_isolation.py` | 18-table tenant RLS; cross-tenant FK; immutable versions and declared records | Automated PostgreSQL |
+| `tests/integration/test_legal_hold_retention.py` | Actual restricted DB runtime role, apply 2 holds, independent release, other hold continues blocking | Automated PostgreSQL |
+| `tests/unit/test_retention_eligibility.py` | Trigger missing, JRA missing, permanent, dynamic/multi-hold, never authorize destruction | Domain unit |
+| `tests/unit/test_bank_mfa.py` | Required signed OIDC ACR mismatch denies, no implied Bank IdP UAT | Auth unit |
+| `tests/unit/test_secure_ingest.py` | AV fail, MIME spoof, missing S3 COMPLIANCE lock, checksum mismatch deny | Fake-adapter unit, not real AV/S3 |
+| `tests/unit/test_restore_manifest.py` | Manifest DB/object/audit completeness, tamper and traversal failures | File manifest unit, not DR rehearsal |
+| `tests/unit/test_archive_api_auth.py` | Anonymous archive/legal API denies | HTTP contract unit |
+| `tests/unit/test_menu_registry.py` | 62 submenu/414 action inventory, no fake production DONE labels | Inventory integrity, not feature E2E |
+
+**Unexecuted release-critical testing:** live Bank IdP/MFA and logout/revocation, actual antivirus signatures, WORM object retention/readback and KMS rotation, signed Bank JRA, independent disposal dual approval and race tests, complete UI Playwright/Android, cross-role 330 UAT, full database/object/audit isolated restore, VA/PT, performance, accessibility and regulatory sign-off.

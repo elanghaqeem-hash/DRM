@@ -8,17 +8,29 @@ from services.api.settings import Settings, get_settings
 bearer = HTTPBearer(auto_error=True)
 
 
+def require_bank_mfa(claims: dict, required_acr: str | None) -> None:
+    """Use ONLY a Bank-approved ACR value from a cryptographically verified JWT.
+
+    Never infer MFA from a realm role or login page. IdP and test vector
+    verification are separate release gates.
+    """
+    if required_acr and claims.get("acr") != required_acr:
+        raise HTTPException(status_code=403, detail="Bank MFA assurance not met")
+
+
 def validate_access_token(token: str, settings: Settings) -> dict:
     if not settings.oidc_enforce:
         raise HTTPException(status_code=503, detail="OIDC bypass disabled")
     try:
         client = jwt.PyJWKClient(settings.oidc_jwks_url, cache_jwk_set=True, lifespan=300)
         key = client.get_signing_key_from_jwt(token).key
-        return jwt.decode(
+        claims = jwt.decode(
             token, key, algorithms=["RS256"], audience=settings.oidc_audience,
             issuer=settings.oidc_issuer,
             options={"require": ["sub", "exp", "iss", "aud", "iat"]},
         )
+        require_bank_mfa(claims, settings.oidc_required_acr)
+        return claims
     except (jwt.PyJWTError, ValueError) as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid access token") from exc
