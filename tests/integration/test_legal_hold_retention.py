@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import psycopg
 from psycopg import sql
+from infra.scripts.provision_runtime import provision
 from psycopg.conninfo import make_conninfo
 import pytest
 from fastapi import HTTPException
@@ -15,33 +16,21 @@ from services.records.isolation import (
 
 
 @pytest.fixture
-def sandbox_db_role():
-    """Ephemeral LOGIN user, not owner/superuser/BYPASSRLS."""
+def sandbox_db_role(monkeypatch):
+    """Exercise the REAL least-privilege provisioning script in CI."""
     url = os.environ["DATABASE_URL"]
     name = "edarms_ci_" + uuid4().hex[:12]
     secret = uuid4().hex + uuid4().hex
-    with psycopg.connect(url, autocommit=True) as admin:
-        admin.execute(
-            sql.SQL("CREATE ROLE {} LOGIN PASSWORD {} INHERIT").format(
-                sql.Identifier(name), sql.Literal(secret)
-            )
-        )
-        # Test-only broad privileges, while PostgreSQL RLS still applies.
-        admin.execute(
-            sql.SQL("GRANT pg_read_all_data, pg_write_all_data TO {}").format(
-                sql.Identifier(name)
-            )
-        )
+    monkeypatch.setenv("APP_DB_USER", name)
+    monkeypatch.setenv("APP_DB_PASSWORD", secret)
+    monkeypatch.setenv("DATABASE_URL", url)
+    provision()
     try:
-        target = make_conninfo(url, user=name, password=secret)
-        yield url, target
+        yield url, make_conninfo(url, user=name, password=secret)
     finally:
         with psycopg.connect(url, autocommit=True) as admin:
-            admin.execute(
-                sql.SQL("REVOKE pg_read_all_data, pg_write_all_data FROM {}").format(
-                    sql.Identifier(name)
-                )
-            )
+            # DROP OWNED only revokes this test role's grants; it owns no tables.
+            admin.execute(sql.SQL("DROP OWNED BY {}").format(sql.Identifier(name)))
             admin.execute(sql.SQL("DROP ROLE {}").format(sql.Identifier(name)))
 
 
