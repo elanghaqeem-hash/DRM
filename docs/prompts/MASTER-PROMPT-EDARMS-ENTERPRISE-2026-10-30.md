@@ -186,7 +186,7 @@ Buat route untuk setiap submenu, navigation guard, breadcrumbs, detail page/draw
 **J11 Data Export, Portability & Exit** — complete archive export with original, derivatives, metadata JSON/CSV/XML where required, hashes, evidence, export manifest; [Buat Request] [Preview Scope] [Approve] [Mulai Export] [Verifikasi] [Download Package] [Hapus Paket Sementara sesuai kebijakan].
 **J12 Tenant / Organization Provisioning** — only if multi-bank approved; tenant separation, classification, regional location, key custody; [Buat Tenant] [Review] [Aktifkan] [Suspend] [Transfer Ownership via controlled operation] [Uji Isolasi]. End-user cannot arbitrarily switch tenant.
 
-**Total minimum menu**: 10 grup utama A–J dan 52 submenu (A4+B6+C8+D5+E4+F7+G4+H7+I5+J12). Peran tertentu hanya melihat menu yang berizin. Periksa dan hitung ulang daftar setelah implementasi.
+**Total minimum menu**: 10 grup utama A–J dan 62 submenu (A4+B6+C8+D5+E4+F7+G4+H7+I5+J12). Peran tertentu hanya melihat menu yang berizin. Periksa dan hitung ulang daftar setelah implementasi.
 
 # BAGIAN 5 — UNIVERSAL BUTTON & FORM CONTRACT (TIDAK ADA TOMBOL MATI)
 
@@ -445,7 +445,7 @@ TBD-BANK-001 legal organization type and office hierarchy; TBD-BANK-002 archival
 **Segera lakukan**:
 1. Read actual HEAD and repository instructions from GitHub DRM; inspect current tree and document status. Do not assume this prompt equals working implementation.
 2. Create/update docs/BRD/EDARMS-BRD.md, docs/regulatory/control-matrix.md, docs/architecture/ERD.md, docs/UX/navigation-and-action-registry.md, docs/UAT/master-scenarios.md, docs/decision-log.md, CHANGELOG.md where relevant.
-3. Produce full inventory for all 52 screens/menus and EVERY button including conditional permissions and API contract. Recount IA actual.
+3. Produce full inventory for all 62 submenu screens and EVERY button including conditional permissions and API contract. Recount IA actual.
 4. Implement WP0 then WP1 and onward incrementally; maintain tight commits and guardrails; if approval absent, build only safe PoC features with synthetic fixtures.
 5. No premature production deployment; release contingent on gates and Bank approval.
 6. Ensure all available tests are actually executed; state NOT RUN when runner unavailable.
