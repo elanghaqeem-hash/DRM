@@ -121,3 +121,8 @@ Actual new API (valid signed OIDC JWT + enabled DB membership required):
 These generic review tasks cannot approve legal holds, record declaration or destruction. API runs against disposable PoC PostgreSQL, and requires manually provisioned synthetic tenant/member fixture and configured test IdP; migration does not create an unsafe default login. Legacy record tables and audit endpoint remain unscoped and **NOT SAFE for real multi-bank records**. No functional enterprise web UI yet, no approved Bank JRA, AV, KMS/WORM, backup restore or production.
 
 Run in synthetic sandbox only: alembic -c infra/alembic.ini upgrade head; pytest -m 'not integration' -q; pytest -m integration -q against disposable DB. Follow [release gates](docs/RELEASE-GATES.md) before any live Bank deployment.
+
+
+### Update: real browser workspace subset (WP1 PoC)
+
+An authenticated **limited** workspace UI is now served at `/app` with OIDC PKCE test login, left collapsible sidebar, real task list/create/approve/reject and no dummy KPIs. Documentation: [apps/web/README.md](apps/web/README.md); evidence: [WP0/WP1 execution report](docs/reports/2026-10-30-WP0-WP1-execution-report.md). This **supersedes earlier statements saying no UI exists**: only the generic task inbox UI is built. All remaining 62-menu enterprise records functions and Bank SSO/session revocation remain unimplemented. Current code is **not** live in production.
