@@ -59,3 +59,9 @@ Catat keputusan teknis dan bisnis dengan nomor unik, tanggal, status, alternatif
 
 ## ADR-0009 — Do not bypass secret scanning (2026-10-30)
 - **Status:** Accepted. Workflow run 41007380254: integration SUCCESS; quality Gitleaks FAILURE because shallow history did not contain requested scan revision (0 bytes scanned). Checkout full history, re-run and verify actual Gitleaks pass; never suppress scanner failure.
+
+
+## ADR-0011 — PoC browser shell without false feature claims (2026-10-30)
+- **Status:** Accepted for isolated PoC only. Reuse FastAPI and serve `/app` static browser client. Local Keycloak OIDC Authorization Code with S256 PKCE; verified API bearer tokens and database tenant membership. Tokens in browser memory only; origin-restricted local PoC client, CSP, no-store. Do not seed real users.
+- **UX:** Accessible 44px controls, sidebar left collapsible/mobile drawer; only A2 generic task inbox clickable. Other menus marked roadmap (not phantom routes). Task counts reflect limited authenticated API data only, never Bank dashboard KPI.
+- **Security gaps:** Browser OIDC functional flow not observed against running Keycloak; full IdP session revocation, Bank MFA, risk-based device/session controls, enterprise full-stack UX and all other records workflows pending.
