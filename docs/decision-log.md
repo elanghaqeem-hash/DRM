@@ -65,3 +65,19 @@ Catat keputusan teknis dan bisnis dengan nomor unik, tanggal, status, alternatif
 - **Status:** Accepted for isolated PoC only. Reuse FastAPI and serve `/app` static browser client. Local Keycloak OIDC Authorization Code with S256 PKCE; verified API bearer tokens and database tenant membership. Tokens in browser memory only; origin-restricted local PoC client, CSP, no-store. Do not seed real users.
 - **UX:** Accessible 44px controls, sidebar left collapsible/mobile drawer; only A2 generic task inbox clickable. Other menus marked roadmap (not phantom routes). Task counts reflect limited authenticated API data only, never Bank dashboard KPI.
 - **Security gaps:** Browser OIDC functional flow not observed against running Keycloak; full IdP session revocation, Bank MFA, risk-based device/session controls, enterprise full-stack UX and all other records workflows pending.
+
+
+## ADR-0012 — Legacy archive tenant isolation without silent Bank backfill (2026-10-31)
+- **Status:** Accepted for synthetic PoC; Bank rollout BLOCKED.
+- **Decision:** Migration 0003 scopes 18 legacy archive business tables using mandatory tenant IDs, FORCE RLS and tenant-coupled foreign keys. Abort if ANY legacy table contains rows; never infer a Bank tenant. Preserve old audit hash chain separately; do not rewrite old event hashes.
+- **Tradeoff:** Existing datasets cannot migrate automatically. Requires signed Bank tenant mapping, verified encrypted backup, test migration, reconciliation and rollback.
+
+## ADR-0013 — Runtime privilege split and legal/retention fail-closed controls (2026-10-31)
+- **Status:** Accepted for PoC.
+- **Decision:** App runtime identity must be non-superuser/non-owner/non-BYPASSRLS; migration owner credentials are excluded from API container. Retention preview can only recommend appraisal; two overlapping holds stay independently active. Release requires independent Legal subject; no direct record/batch disposition states are permitted.
+- **Production gate:** Complete Bank-approved JRA version, signature evidence, two authorized destruction approvers, hold race tests, SIEM/WORM anchors, penetration and restoration proof.
+
+## ADR-0014 — Storage, AV and DR require verified infrastructure (2026-10-31)
+- **Status:** Adapter implementation only, not operational acceptance.
+- **Decision:** Capture original only after ClamAV clean verdict, private locked encrypted S3 bucket preflight, versioned object, COMPLIANCE retention and SHA-256 readback. Missing any prerequisite blocks ingest. Restore manifest validates DB/objects/audit and real restore command refuses nonisolated DB names.
+- **Gate:** Approved private bucket/KMS/object lock/JRA parameters, real AV engine, Bank ownership, authenticated restore to isolated infrastructure and integrity attestation. No production claims from mocks.
