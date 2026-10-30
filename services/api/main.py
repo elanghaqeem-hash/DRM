@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from services.api.settings import Settings, get_settings
 from services.access.oidc import current_actor, require_roles
 from services.audit.store import append_event, verify_chain
+from services.records.isolation import retention_preview, apply_legal_hold, release_legal_hold
 
 app = FastAPI(title="DRM Bank — Sprint 0 PoC", version="0.1.0",
               description="Non-production skeleton; Bank controls pending approval.")
@@ -161,3 +162,49 @@ async def poc_web_security_headers(request: Request, call_next):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Cache-Control"] = "no-store"
     return response
+
+
+# WP2: tenant-gated read-only retention checks and human legal holds.
+# These APIs never execute a disposition or certify a Bank JRA.
+class HoldApplyIn(BaseModel):
+    tenant_id: UUID
+    case_ref: str = Field(min_length=2, max_length=200)
+    legal_basis: str = Field(min_length=2, max_length=500)
+    reason: str = Field(min_length=2, max_length=1000)
+
+
+class HoldReleaseIn(BaseModel):
+    tenant_id: UUID
+    reason: str = Field(min_length=2, max_length=1000)
+
+
+@app.get("/v1/archives/{record_id}/retention-preview", tags=["records"])
+def preview_record_retention(
+    record_id: UUID, tenant_id: UUID,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    return retention_preview(settings.database_url, tenant_id, record_id, actor["sub"])
+
+
+@app.post("/v1/archives/{record_id}/holds", tags=["legal"], status_code=201)
+def create_record_hold(
+    record_id: UUID, data: HoldApplyIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    return apply_legal_hold(
+        settings.database_url, data.tenant_id, record_id, actor["sub"],
+        data.case_ref, data.legal_basis, data.reason,
+    )
+
+
+@app.post("/v1/legal-holds/{hold_id}/release", tags=["legal"])
+def approve_hold_release(
+    hold_id: UUID, data: HoldReleaseIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    return release_legal_hold(
+        settings.database_url, data.tenant_id, hold_id, actor["sub"], data.reason,
+    )
