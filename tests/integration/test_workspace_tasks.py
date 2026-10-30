@@ -18,7 +18,7 @@ def test_task_flow_tenant_isolation_and_maker_checker():
                 (a, "t-" + a.hex[:12], "Synthetic A",
                  b, "t-" + b.hex[:12], "Synthetic B"),
             )
-            conn.executemany(
+            conn.cursor().executemany(
                 """INSERT INTO edarms_membership
                    (tenant_id,actor_sub,role_code,enabled)
                    VALUES (%s,%s,%s,true)""",
