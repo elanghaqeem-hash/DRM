@@ -22,7 +22,7 @@ def sandbox_db_role():
     secret = uuid4().hex + uuid4().hex
     with psycopg.connect(url, autocommit=True) as admin:
         admin.execute(
-            sql.SQL("CREATE ROLE {} LOGIN PASSWORD {} NOINHERIT").format(
+            sql.SQL("CREATE ROLE {} LOGIN PASSWORD {} INHERIT").format(
                 sql.Identifier(name), sql.Literal(secret)
             )
         )
