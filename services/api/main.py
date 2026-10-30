@@ -56,3 +56,64 @@ def verify_audit(
 ):
     require_roles(actor, {"auditor", "security_admin"})
     return verify_chain(settings.database_url)
+
+
+# EDARMS WP1: generic PoC approval inbox. Does not approve any records/destruction.
+from uuid import UUID
+from fastapi import Header, Query
+from services.workspace.store import actor_workspace, list_tasks, create_task, decide_task
+
+
+class TaskCreateIn(BaseModel):
+    tenant_id: UUID
+    title: str = Field(min_length=1, max_length=180)
+    assigned_to: str = Field(min_length=1, max_length=255)
+
+
+class TaskDecisionIn(BaseModel):
+    tenant_id: UUID
+    decision: Literal["APPROVED", "REJECTED"]
+    expected_version: int = Field(ge=1)
+    reason: str | None = Field(default=None, max_length=1000)
+
+
+@app.get("/v1/workspace/me", tags=["workspace"])
+def workspace_me(
+    tenant_id: UUID,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    return actor_workspace(settings.database_url, tenant_id, actor["sub"])
+
+
+@app.get("/v1/workspace/tasks", tags=["workspace"])
+def workspace_tasks(
+    tenant_id: UUID,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    status_filter: Literal["OPEN", "APPROVED", "REJECTED"] | None = None,
+    limit: int = Query(default=25, ge=1, le=50),
+):
+    return list_tasks(settings.database_url, tenant_id, actor["sub"], status_filter, limit)
+
+
+@app.post("/v1/workspace/tasks", tags=["workspace"], status_code=201)
+def workspace_create_task(
+    data: TaskCreateIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    idempotency_key: Annotated[str, Header(min_length=8, max_length=128)],
+):
+    return create_task(settings.database_url, data.tenant_id, actor["sub"],
+                       data.title, data.assigned_to, idempotency_key)
+
+
+@app.post("/v1/workspace/tasks/{task_id}/decision", tags=["workspace"])
+def workspace_decide_task(
+    task_id: UUID,
+    data: TaskDecisionIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    return decide_task(settings.database_url, data.tenant_id, task_id, actor["sub"],
+                       data.decision, data.expected_version, data.reason)
