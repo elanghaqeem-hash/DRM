@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     oidc_issuer: str = Field(min_length=5)
     oidc_jwks_url: str = Field(min_length=5)
     oidc_audience: str = Field(min_length=1)
+    oidc_web_client_id: str = Field(default="drm-web", min_length=3)
     oidc_enforce: bool = True
     drm_env: str = "poc"
     audit_anchor_required: bool = False
