@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     oidc_enforce: bool = True
     drm_env: str = "poc"
     audit_anchor_required: bool = False
+    legacy_audit_api_enabled: bool = False  # global ledger is not tenant-isolated
 
     @model_validator(mode="after")
     def validate_settings(self):
