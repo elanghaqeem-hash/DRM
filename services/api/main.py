@@ -48,6 +48,8 @@ def submit_audit_event(
     actor: Annotated[dict, Depends(current_actor)],
     settings: Annotated[Settings, Depends(get_settings)],
 ):
+    if not settings.legacy_audit_api_enabled:
+        raise HTTPException(status_code=410, detail="Legacy global audit API retired")
     role = require_roles(actor, {"audit_writer", "security_admin"})
     return append_event(
         settings.database_url, actor_sub=actor["sub"], actor_role=role,
@@ -62,6 +64,8 @@ def verify_audit(
     actor: Annotated[dict, Depends(current_actor)],
     settings: Annotated[Settings, Depends(get_settings)],
 ):
+    if not settings.legacy_audit_api_enabled:
+        raise HTTPException(status_code=410, detail="Legacy global audit API retired")
     require_roles(actor, {"auditor", "security_admin"})
     return verify_chain(settings.database_url)
 
