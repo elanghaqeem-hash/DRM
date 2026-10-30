@@ -58,6 +58,31 @@
             <div id="tasks" class="task-list" aria-live="polite">Belum ada data</div>
             <small>Hanya tugas yang Anda buat atau ditugaskan kepada Anda; maksimum 50 data terbaru per permintaan. Pagination lanjutan masih direncanakan.</small>
           </section>
+          <section id="archive-control-panel" class="panel" hidden aria-labelledby="archive-control-heading">
+            <h2 id="archive-control-heading">Retensi dan Legal Hold — PoC</h2>
+            <p>Hanya pemeriksaan kelayakan untuk appraisal, bukan izin pemusnahan. Gunakan ID arsip uji yang sudah terdaftar.</p>
+            <form id="retention-form">
+              <label for="control-record-id">Record ID (UUID)</label>
+              <div class="form-row"><input id="control-record-id" required type="text" minlength="36" maxlength="36" autocomplete="off" placeholder="UUID arsip sintetis"><button class="primary" type="submit" id="check-retention">Periksa Retensi</button></div>
+            </form>
+            <output id="retention-result" role="status" aria-live="polite">Belum ada pemeriksaan.</output>
+            <div id="legal-hold-panel" hidden>
+              <hr>
+              <h2>Pengendalian Legal Hold</h2>
+              <form id="hold-form">
+                <label for="hold-case">Referensi perkara / dasar permintaan</label><input id="hold-case" required minlength="2" maxlength="200" autocomplete="off">
+                <label for="hold-basis">Dasar hukum yang ditinjau Legal</label><input id="hold-basis" required minlength="2" maxlength="500">
+                <label for="hold-reason">Alasan pemasangan hold</label><input id="hold-reason" required minlength="2" maxlength="1000">
+                <button class="primary" type="submit" id="apply-hold">Pasang Hold</button>
+              </form>
+              <form id="release-form">
+                <label for="release-hold-id">Hold ID (UUID)</label><input id="release-hold-id" required minlength="36" maxlength="36" autocomplete="off">
+                <label for="release-reason">Alasan pelepasan oleh Legal independen</label><input id="release-reason" required minlength="2" maxlength="1000">
+                <button class="ghost" type="submit" id="release-hold">Lepaskan Hold</button>
+              </form>
+              <p><small>Maker dilarang melepas hold sendiri. Semua aksi diperiksa ulang di server.</small></p>
+            </div>
+          </section>
         </div>
       </main>
       <footer class="footer">EDARMS · Limited PoC workspace · Tidak untuk data nasabah atau arsip Bank nyata</footer>
