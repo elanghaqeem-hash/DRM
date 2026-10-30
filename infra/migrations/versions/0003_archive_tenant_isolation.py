@@ -115,6 +115,14 @@ ALTER TABLE legal_hold ADD CONSTRAINT uq_legal_hold_tenant_case
  UNIQUE (tenant_id,case_ref);
     """)
 
+    # Fail closed until independent legally authorized destruction is built.
+    op.execute("""
+ALTER TABLE record ADD CONSTRAINT ck_record_no_unapproved_disposal
+ CHECK(status <> 'DISPOSED');
+ALTER TABLE disposition_batch ADD CONSTRAINT ck_batch_no_unapproved_execution
+ CHECK(status <> 'EXECUTED');
+    """)
+
     # The actual object bytes are stored elsewhere. Record versions carry
     # immutable checksum references; changing a row is not a valid correction.
     op.execute("""
