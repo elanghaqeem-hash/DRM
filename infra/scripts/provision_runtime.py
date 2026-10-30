@@ -40,10 +40,17 @@ def provision():
             )
         role_id = sql.Identifier(name)
         conn.execute(sql.SQL("GRANT USAGE ON SCHEMA public TO {}").format(role_id))
-        # SELECT is filtered by FORCE RLS on all archive tables.
-        conn.execute(sql.SQL(
-            "GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}"
-        ).format(role_id))
+        # Explicit allowlist: never grant global legacy audit or unscoped user data.
+        for table in (
+            "edarms_tenant", "edarms_membership", "edarms_review_task",
+            "edarms_task_event", "edarms_archive_control_event",
+            "edarms_legal_hold_event", "record", "record_version",
+            "record_class", "classification_scheme", "retention_rule",
+            "legal_hold", "legal_hold_scope",
+        ):
+            conn.execute(sql.SQL("GRANT SELECT ON {} TO {}").format(
+                sql.Identifier(table), role_id
+            ))
         for table in (
             "edarms_review_task", "edarms_task_event",
             "edarms_archive_control_event", "legal_hold",
