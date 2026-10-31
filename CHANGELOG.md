@@ -65,3 +65,7 @@ Semua perubahan penting proyek Digital Records Management dicatat dalam berkas i
 - ClamAV INSTREAM and S3 Object Lock COMPLIANCE adapters with fail-closed negative tests; synthetic unit tests only, no live Bank services.
 - Added migration/backfill count report, P0 execution report and CI integration RLS tests with runtime login.
 - **Still pending:** Bank tenant provenance backfill, IdP federation, real scanner/object-lock integration UAT, external audit WORM anchor, approved JRA, 62 functional submenu release and production gates.
+
+### EDARMS production readiness roadmap — 2026-10-31
+- Added `docs/roadmap/EDARMS-PRODUCTION-READINESS-2026-10-31.md`: prioritized WP00–WP09, 62 submenu/414 action coverage, Bank-controlled go-live gates, tenant/SSO/AV/WORM/JRA/hold/disposition/restore requirements, UAT journeys, proposed schedule and responsibility matrix.
+- Roadmap is advisory only; does not activate production, approve Bank JRA, merge PRs, or demonstrate UAT/infrastructure readiness.
