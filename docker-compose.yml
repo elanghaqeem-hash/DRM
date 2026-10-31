@@ -41,12 +41,23 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
     restart: "no"
+  provision:
+    build: .
+    env_file: .env
+    environment:
+      POSTGRES_RUNTIME_PASSWORD: ${POSTGRES_RUNTIME_PASSWORD:?Set POSTGRES_RUNTIME_PASSWORD}
+    command: ["python", "infra/scripts/provision_runtime.py"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    restart: "no"
   api:
     build: .
     env_file: .env
+    environment:
+      DATABASE_URL: ${RUNTIME_DATABASE_URL:?Set RUNTIME_DATABASE_URL}
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      provision: {condition: service_completed_successfully}
       keycloak: {condition: service_started}
     read_only: true
     tmpfs: ["/tmp"]
