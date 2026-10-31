@@ -1,0 +1,67 @@
+name: DRM PoC CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Gitleaks needs PR base history; never skip secret scan
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m compileall -q services infra/migrations tests
+      - run: node --check apps/web/edarms.js
+      - run: python -m json.tool infra/keycloak/drm-poc-realm.json > /dev/null
+      - run: ruff check --select E4,E7,E9,F services tests infra/scripts
+      - run: bandit -q -r services -ll
+      - run: pip-audit
+      - run: pytest -m 'not integration' -q --cov=services.audit --cov=services.access
+      - name: Generate CycloneDX SBOM
+        run: |
+          python -m pip install cyclonedx-bom
+          cyclonedx-py environment -o sbom.json --of JSON
+      - uses: actions/upload-artifact@v4
+        with: {name: sbom, path: sbom.json}
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: drm_poc
+          POSTGRES_USER: drm_app
+          POSTGRES_PASSWORD: ci-local-only-pass
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd=pg_isready
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://drm_app:ci-local-only-pass@localhost:5432/drm_poc
+      OIDC_ISSUER: http://localhost:8080/realms/drm-poc
+      OIDC_JWKS_URL: http://localhost:8080/realms/drm-poc/protocol/openid-connect/certs
+      OIDC_AUDIENCE: drm-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -e '.[dev]'
+      - run: alembic -c infra/alembic.ini upgrade head
+      - name: Generate disposable runtime database credentials
+        run: |
+          python - <<'PY'
+          import os, secrets
+          password = secrets.token_urlsafe(30)
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+              env.write("POSTGRES_RUNTIME_PASSWORD=" + password + "\n")
+              env.write("RUNTIME_DATABASE_URL=postgresql://edarms_api_login:" + password + "@localhost:5432/drm_poc\n")
+          PY
+      - run: python infra/scripts/provision_runtime.py
+      - run: pytest -m integration -q

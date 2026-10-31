@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>EDARMS — Workspace PoC</title>
+  <link rel="stylesheet" href="/static/edarms.css">
+  <script type="module" src="/static/edarms.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Lewati ke konten</a>
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menu navigasi">
+      <div class="brand"><span class="mark" aria-hidden="true">E</span><div class="brand-copy"><strong>EDARMS</strong><small>Enterprise Archives</small></div></div>
+      <div class="side-label">WORKSPACE POC</div>
+      <nav aria-label="Navigasi utama">
+        <a class="nav-item active" href="/app" aria-current="page"><span aria-hidden="true">▣</span><span class="nav-text">My Tasks & Approval</span></a>
+        <div class="side-label">ROADMAP — BELUM DIRILIS</div>
+        <ul class="planned" aria-label="Menu yang belum tersedia">
+          <li>Executive & Workspace</li><li>Governance & Klasifikasi</li>
+          <li>Capture & Digital Records</li><li>Physical Archives</li>
+          <li>Pencarian & Permintaan</li><li>Retensi & Disposisi</li>
+          <li>Preservation & Evidence</li><li>Compliance & Reporting</li>
+          <li>AI & OCR</li><li>Administration</li>
+        </ul>
+      </nav>
+      <div class="sidebar-foot"><span class="dot" aria-hidden="true"></span> PoC terisolasi · Bukan produksi</div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <div class="left-tools"><button class="iconbtn" type="button" id="toggle-nav" aria-label="Sembunyikan atau tampilkan sidebar" aria-expanded="true">☰</button><span class="crumb">Workspace / <strong>My Tasks</strong></span></div>
+        <div class="right-tools"><span id="identity" aria-live="polite">Sesi belum aktif</span><button class="ghost" type="button" id="logout" hidden>Keluar</button></div>
+      </header>
+      <main id="main" tabindex="-1">
+        <div class="heading"><div><span class="eyebrow">EDARMS ENTERPRISE · PILOT</span><h1>My Tasks & Approval Inbox</h1><p>Kelola tugas review umum untuk PoC. Persetujuan ini tidak menyetujui retensi, legal hold, atau pemusnahan arsip.</p></div><span class="phase">WP1 / PoC</span></div>
+        <div id="feedback" class="notice" role="status" aria-live="polite">Belum terhubung. Masuk ke IdP PoC dan pilih tenant uji yang disediakan administrator.</div>
+        <section id="login-panel" class="panel" aria-labelledby="login-heading">
+          <h2 id="login-heading">Autentikasi</h2><p>Login OIDC Authorization Code + PKCE. Token hanya disimpan di memori tab, tanpa kata sandi lokal.</p>
+          <button type="button" class="primary" id="login">Masuk melalui IdP PoC</button>
+        </section>
+        <section id="tenant-panel" class="panel" hidden aria-labelledby="tenant-heading">
+          <h2 id="tenant-heading">Konteks organisasi</h2>
+          <form id="tenant-form"><label for="tenant-id">ID tenant sintetis (UUID)</label><div class="form-row"><input id="tenant-id" type="text" required minlength="36" maxlength="36" placeholder="UUID tenant yang telah diotorisasi" autocomplete="off"><button class="primary" type="submit">Buka workspace</button></div></form>
+        </section>
+        <div id="work-panels" hidden>
+          <div class="summary" aria-label="Ringkasan tugas">
+            <div class="metric"><small>Task ditampilkan</small><strong id="count-all">—</strong><span>Terbatas ke hak akses Anda</span></div>
+            <div class="metric"><small>Task terbuka</small><strong id="count-open">—</strong><span>Belum diputuskan</span></div>
+            <div class="metric"><small>Task selesai</small><strong id="count-closed">—</strong><span>Disetujui / ditolak</span></div>
+          </div>
+          <section id="create-panel" class="panel" hidden aria-labelledby="create-heading">
+            <h2 id="create-heading">Buat tugas review</h2>
+            <form id="create-form"><label for="task-title">Judul tugas</label><input id="task-title" required maxlength="180" placeholder="Contoh: Verifikasi data uji (sintetis)"><label for="assignee">OIDC subject pemeriksa independen</label><input id="assignee" required maxlength="255" placeholder="Subjek pengguna uji yang berhak menyetujui"><button class="primary" type="submit" id="save-task">Buat tugas</button></form>
+          </section>
+          <section class="panel" aria-labelledby="list-heading">
+            <div class="panel-head"><h2 id="list-heading">Daftar tugas</h2><div class="filters"><label for="status-filter">Status</label><select id="status-filter"><option value="">Semua</option><option value="OPEN">Terbuka</option><option value="APPROVED">Disetujui</option><option value="REJECTED">Ditolak</option></select><button class="ghost" type="button" id="refresh">Muat ulang</button></div></div>
+            <div id="tasks" class="task-list" aria-live="polite">Belum ada data</div>
+            <small>Hanya tugas yang Anda buat atau ditugaskan kepada Anda; maksimum 50 data terbaru per permintaan. Pagination lanjutan masih direncanakan.</small>
+          </section>
+        </div>
+      </main>
+      <footer class="footer">EDARMS · Limited PoC workspace · Tidak untuk data nasabah atau arsip Bank nyata</footer>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Preserve Gitleaks default rules. Narrow, reviewed prose-only false positive.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Reviewed false positive: master prompt security-defense prose, line 311 (Gitleaks generic-api-key on plain text). No keys or credentials in this line."
+regexTarget = "line"
+regexes = ['''^- Defenses: safe rendering, sanitization/escaping, CSP, server validation, anti-CSRF on cookie sessions, rate limiting, secure headers, user session control, MFA, KMS, audit, short-lived object access, consent/privacy exception\.$''']

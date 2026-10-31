@@ -1,0 +1,14 @@
+.env
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+*.pyc
+*.sqlite
+.venv/
+build/
+dist/
+*.egg-info/
+infra/keycloak/generated/
+sbom.json
