@@ -126,3 +126,10 @@ Run in synthetic sandbox only: alembic -c infra/alembic.ini upgrade head; pytest
 ### Update: real browser workspace subset (WP1 PoC)
 
 An authenticated **limited** workspace UI is now served at `/app` with OIDC PKCE test login, left collapsible sidebar, real task list/create/approve/reject and no dummy KPIs. Documentation: [apps/web/README.md](apps/web/README.md); evidence: [WP0/WP1 execution report](docs/reports/2026-10-30-WP0-WP1-execution-report.md). This **supersedes earlier statements saying no UI exists**: only the generic task inbox UI is built. All remaining 62-menu enterprise records functions and Bank SSO/session revocation remain unimplemented. Current code is **not** live in production.
+
+
+### EDARMS P0 security foundation (31 October 2026)
+
+Follow [P0 execution evidence](docs/reports/2026-10-31-P0-tenant-identity-immutable-execution.md). Alembic 0003 introduces FORCE RLS across **24 legacy archive tables**, tenant-composite FK guards and quarantines pre-existing records without approved tenant provenance. New DB runtime login `edarms_api_login` is least-privilege; Docker Compose provisions it after schema migration using a locally generated distinct password. Runtime API now rejects superuser/BYPASSRLS DB credentials. `infra/scripts/legacy_tenant_report.py` reports (not repairs) unclassified rows.
+
+OIDC MFA assurance is configurable using Bank-approved signed token claims (`OIDC_MFA_REQUIRED`, `OIDC_ALLOWED_ACR`, `OIDC_ALLOWED_AMR`); local PoC defaults to MFA-off, staging requires explicit claims. ClamAV and S3 Object Lock adapters exist in `services/storage/immutable_ingest.py` but are not activated or publicly exposed without Bank-approved JRA, ownership, AV service and compliant object store. The app remains **PoC only**, production startup blocked. Neither the 62 submenu workflows nor Bank SSO/MFA/WORM/AV/restore operations are certified.
