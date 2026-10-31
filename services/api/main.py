@@ -35,8 +35,11 @@ def live():
 def ready(settings: Annotated[Settings, Depends(get_settings)]):
     try:
         with psycopg.connect(settings.database_url, connect_timeout=2) as conn:
+            role = conn.execute("SELECT rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user").fetchone()
+            if role is None or any(role):
+                raise HTTPException(status_code=503, detail="Unsafe database identity")
             conn.execute("SELECT 1")
-        return {"status": "ready", "database": "available"}
+        return {"status": "ready", "database": "available", "rls_identity": "non-bypass"}
     except psycopg.Error as exc:
         raise HTTPException(status_code=503, detail="Database unavailable") from exc
 
