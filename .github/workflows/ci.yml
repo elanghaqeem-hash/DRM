@@ -54,4 +54,14 @@ jobs:
         with: {python-version: '3.12'}
       - run: python -m pip install -e '.[dev]'
       - run: alembic -c infra/alembic.ini upgrade head
+      - name: Generate disposable runtime database credentials
+        run: |
+          python - <<'PY'
+          import os, secrets
+          password = secrets.token_urlsafe(30)
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+              env.write("POSTGRES_RUNTIME_PASSWORD=" + password + "\n")
+              env.write("RUNTIME_DATABASE_URL=postgresql://edarms_api_login:" + password + "@localhost:5432/drm_poc\n")
+          PY
+      - run: python infra/scripts/provision_runtime.py
       - run: pytest -m integration -q
