@@ -65,9 +65,7 @@ def test_task_flow_tenant_isolation_and_maker_checker():
 
     with psycopg.connect(url) as conn:
         with conn.transaction():
-            # CI seed user is a superuser, which bypasses RLS even with FORCE.
-            # Switch into PostgreSQL built-in read-only NON-BYPASSRLS role.
-            conn.execute("SET LOCAL ROLE pg_read_all_data")
+            # Exercise the *actual* application login, not owner or pg_read_all_data.
             bypass = conn.execute(
                 "SELECT rolbypassrls FROM pg_roles WHERE rolname = current_user"
             ).fetchone()[0]
