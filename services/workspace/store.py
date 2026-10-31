@@ -17,6 +17,12 @@ def _start_scope(conn: psycopg.Connection, tenant_id: UUID, actor_sub: str) -> s
     """Trust the verified OIDC subject; cross-check membership in database."""
     if not actor_sub or len(actor_sub) > 255:
         raise HTTPException(status_code=403, detail="Active tenant membership required")
+    # DB owners/superusers can bypass RLS; no API operation may use one.
+    db_role = conn.execute(
+        "SELECT rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user"
+    ).fetchone()
+    if db_role is None or db_role["rolsuper"] or db_role["rolbypassrls"]:
+        raise HTTPException(status_code=503, detail="Unsafe database identity: RLS bypass")
     # LOCAL setting lasts only for this transaction and is used by FORCE RLS.
     conn.execute("SELECT set_config('edarms.tenant_id', %s, true)", (str(tenant_id),))
     rows = conn.execute(
