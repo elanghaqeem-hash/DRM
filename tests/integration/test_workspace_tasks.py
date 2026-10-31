@@ -12,7 +12,7 @@ def test_task_flow_tenant_isolation_and_maker_checker():
     url = os.environ["RUNTIME_DATABASE_URL"]
     admin_url = os.environ["DATABASE_URL"]
     a, b = uuid4(), uuid4()
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(admin_url) as conn:
         with conn.transaction():
             conn.execute(
                 "INSERT INTO edarms_tenant(id,code,name) VALUES (%s,%s,%s),(%s,%s,%s)",
