@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     oidc_enforce: bool = True
     oidc_mfa_required: bool = False
     oidc_allowed_acr: str = ""
-    oidc_allowed_amr: str = "mfa,otp,hwk"
+    oidc_allowed_amr: str = ""
     oidc_max_auth_age_seconds: int = Field(default=300, ge=30, le=3600)
     drm_env: str = "poc"
     audit_anchor_required: bool = False
@@ -25,6 +25,10 @@ class Settings(BaseSettings):
             raise ValueError("OIDC cannot be disabled outside PoC")
         if self.drm_env not in ("poc", "production") and not self.oidc_mfa_required:
             raise ValueError("MFA enforcement is mandatory outside PoC")
+        if self.drm_env not in ("poc", "production") and not (
+            self.oidc_allowed_acr.strip() or self.oidc_allowed_amr.strip()
+        ):
+            raise ValueError("Bank-approved MFA assurance values must be configured")
         if self.drm_env != "poc" and not self.audit_anchor_required:
             raise ValueError("External WORM anchor is required outside PoC")
         if self.drm_env == "production":
