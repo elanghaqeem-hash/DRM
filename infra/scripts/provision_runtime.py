@@ -18,11 +18,10 @@ def main():
         found = conn.execute(
             "SELECT 1 FROM pg_roles WHERE rolname='edarms_api_login'"
         ).fetchone()
-        if found:
-            raise SystemExit("Runtime user already exists; change credentials via secure DBA process")
+        verb = "ALTER" if found else "CREATE"
         conn.execute(
             sql.SQL(
-                "CREATE ROLE edarms_api_login LOGIN NOSUPERUSER NOCREATEDB "
+                f"{verb} ROLE edarms_api_login LOGIN NOSUPERUSER NOCREATEDB "
                 "NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD {}"
             ).format(sql.Literal(password))
         )
