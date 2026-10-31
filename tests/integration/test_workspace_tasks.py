@@ -9,7 +9,8 @@ from services.workspace.store import actor_workspace, create_task, decide_task, 
 
 @pytest.mark.integration
 def test_task_flow_tenant_isolation_and_maker_checker():
-    url = os.environ["RUNTIME_DATABASE_URL"]\n    admin_url = os.environ["DATABASE_URL"]
+    url = os.environ["RUNTIME_DATABASE_URL"]
+    admin_url = os.environ["DATABASE_URL"]
     a, b = uuid4(), uuid4()
     with psycopg.connect(url) as conn:
         with conn.transaction():
