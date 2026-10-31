@@ -121,6 +121,7 @@ END $$;
     # Legacy records remain deliberately read-only to the app until business
     # controls are implemented; RLS denies unmapped historical records.
     op.execute(f"GRANT SELECT ON {', '.join(LEGACY)} TO edarms_runtime")
+    op.execute("GRANT INSERT ON audit_event TO edarms_runtime")
 
 
 def downgrade():
