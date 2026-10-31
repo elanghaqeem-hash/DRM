@@ -65,3 +65,10 @@ Catat keputusan teknis dan bisnis dengan nomor unik, tanggal, status, alternatif
 - **Status:** Accepted for isolated PoC only. Reuse FastAPI and serve `/app` static browser client. Local Keycloak OIDC Authorization Code with S256 PKCE; verified API bearer tokens and database tenant membership. Tokens in browser memory only; origin-restricted local PoC client, CSP, no-store. Do not seed real users.
 - **UX:** Accessible 44px controls, sidebar left collapsible/mobile drawer; only A2 generic task inbox clickable. Other menus marked roadmap (not phantom routes). Task counts reflect limited authenticated API data only, never Bank dashboard KPI.
 - **Security gaps:** Browser OIDC functional flow not observed against running Keycloak; full IdP session revocation, Bank MFA, risk-based device/session controls, enterprise full-stack UX and all other records workflows pending.
+
+
+## ADR-0012 — Deny-by-default legacy tenant quarantine (2026-10-31)
+- **Status:** Accepted for synthetic PoC; Bank data migration approval PENDING. All 24 legacy tables receive tenant_id/FORCE RLS. Unknown historical provenance remains NULL, hidden and blocked for future writes; never guess historical tenant ownership. Composite tenant FKs prevent accidental cross-bank links. Use separate non-BYPASSRLS runtime role and audited DBA backfill with approved mapping and counts. Reconcile/validate NOT VALID constraints before allowing Bank record access.
+
+## ADR-0013 — External security controls are fail-closed, not claimed live (2026-10-31)
+- **Status:** Accepted for implementation pilot; Bank IdP, AV and Object Lock live checks PENDING. Signed ACR/AMR and recent auth_time guard sensitive actions with approved IdP configuration. Scanner-offline/FOUND denies content; S3 COMPLIANCE lock and read-back evidence required before receipt. No public archive write endpoint until signed JRA, tenant authorization and legal hold integration exist. Database audit alone is not external WORM.
