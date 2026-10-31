@@ -57,3 +57,11 @@ Semua perubahan penting proyek Digital Records Management dicatat dalam berkas i
 - Extended CI to validate JS syntax and JSON realm; added UI smoke tests. On GitHub Actions run 41031409696: 31 unit/non-integration tests PASS, 2 PostgreSQL integration tests PASS, Ruff/Bandit/SCA/SBOM/Gitleaks PASS.
 - Gitleaks reviewed false-positive fingerprint is tightly documented; real credentials still prohibited. RLS validated using non-BYPASSRLS read role; actual PoC owner superuser remains a production gate.
 - Added WP0/WP1 evidence and open-blocker report. Full Bank IdP, secure server logout, 62 menu actions, 330 UAT execution, AV/WORM/DR/retention engine, and production are NOT COMPLETE.
+
+### EDARMS P0 tenant isolation and security adapters — 2026-10-31
+- Migration 0003: tenant quarantine and FORCE RLS over 24 legacy tables, tenant-aware composite FKs; no historical tenant guessed.
+- Separate NOLOGIN/NOBYPASSRLS runtime grants and provisioned API login, Compose API credential separation, role-aware readiness, tenant-scoped audit chain.
+- Signed-token MFA assurance and recent auth_time checks for sensitive decisions; staging requires Bank-provided accepted claims.
+- ClamAV INSTREAM and S3 Object Lock COMPLIANCE adapters with fail-closed negative tests; synthetic unit tests only, no live Bank services.
+- Added migration/backfill count report, P0 execution report and CI integration RLS tests with runtime login.
+- **Still pending:** Bank tenant provenance backfill, IdP federation, real scanner/object-lock integration UAT, external audit WORM anchor, approved JRA, 62 functional submenu release and production gates.
