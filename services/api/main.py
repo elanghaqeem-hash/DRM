@@ -128,6 +128,7 @@ def workspace_decide_task(
     settings: Annotated[Settings, Depends(get_settings)],
 ):
     require_recent_mfa(actor, settings)
+    require_recent_mfa(actor, settings)
     return decide_task(settings.database_url, data.tenant_id, task_id, actor["sub"],
                        data.decision, data.expected_version, data.reason)
 
