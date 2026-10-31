@@ -11,7 +11,7 @@ import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from services.api.settings import Settings, get_settings
-from services.access.oidc import current_actor, require_roles
+from services.access.oidc import current_actor, require_roles, require_recent_mfa
 from services.audit.store import append_event, verify_chain
 
 app = FastAPI(title="DRM Bank — Sprint 0 PoC", version="0.1.0",
@@ -52,6 +52,7 @@ def submit_audit_event(
     settings: Annotated[Settings, Depends(get_settings)],
 ):
     role = require_roles(actor, {"audit_writer", "security_admin"})
+    require_recent_mfa(actor, settings)
     return append_event(
         settings.database_url, tenant_id=data.tenant_id,
         actor_sub=actor["sub"], actor_role=role,
@@ -126,6 +127,7 @@ def workspace_decide_task(
     actor: Annotated[dict, Depends(current_actor)],
     settings: Annotated[Settings, Depends(get_settings)],
 ):
+    require_recent_mfa(actor, settings)
     return decide_task(settings.database_url, data.tenant_id, task_id, actor["sub"],
                        data.decision, data.expected_version, data.reason)
 
