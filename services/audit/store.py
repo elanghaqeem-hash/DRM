@@ -55,8 +55,8 @@ def append_event(database_url: str, *, tenant_id: UUID, actor_sub: str,
 def verify_chain(database_url: str, *, tenant_id: UUID, actor_sub: str) -> dict:
     with psycopg.connect(database_url, row_factory=dict_row) as conn:
         with conn.transaction():
-            _start_scope(conn, tenant_id, actor_sub)
             conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+            _start_scope(conn, tenant_id, actor_sub)
             rows = conn.execute("""
                 SELECT seq,event_id,ts,actor_sub,actor_role,source_ip,device,action,
                        object_ref,before_hash,after_hash,result,prev_hash,event_hash,payload
