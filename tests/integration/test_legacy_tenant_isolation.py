@@ -59,17 +59,19 @@ def test_legacy_rls_fks_and_quarantine():
                 "WHERE conname='record_new_tenant_required'"
             ).fetchone()[0] is False
         with pytest.raises(psycopg.errors.CheckViolation):
-            admin.execute(
-                "INSERT INTO classification_scheme(code,name,version) "
-                "VALUES (%s,'No tenant',1)", ("orphan-" + uuid4().hex[:12],)
-            )
+            with admin.transaction():
+                admin.execute(
+                    "INSERT INTO classification_scheme(code,name,version) "
+                    "VALUES (%s,'No tenant',1)", ("orphan-" + uuid4().hex[:12],)
+                )
         with pytest.raises(psycopg.errors.ForeignKeyViolation):
-            admin.execute(
-                "INSERT INTO record_class "
-                "(tenant_id,scheme_id,code,name,security_default) "
-                "VALUES (%s,%s,'CROSS','Bad','INTERNAL')",
-                (tenant_b, scheme_id),
-            )
+            with admin.transaction():
+                admin.execute(
+                    "INSERT INTO record_class "
+                    "(tenant_id,scheme_id,code,name,security_default) "
+                    "VALUES (%s,%s,'CROSS','Bad','INTERNAL')",
+                    (tenant_b, scheme_id),
+                )
 
     with psycopg.connect(runtime_url) as connection:
         with connection.transaction():
