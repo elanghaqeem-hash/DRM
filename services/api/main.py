@@ -19,6 +19,7 @@ app = FastAPI(title="DRM Bank — Sprint 0 PoC", version="0.1.0",
 
 
 class AuditIn(BaseModel):
+    tenant_id: UUID
     action: str = Field(min_length=1, max_length=80, pattern=r"^[A-Z0-9_]+$")
     object_ref: str = Field(min_length=1, max_length=200)
     before_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
@@ -52,7 +53,8 @@ def submit_audit_event(
 ):
     role = require_roles(actor, {"audit_writer", "security_admin"})
     return append_event(
-        settings.database_url, actor_sub=actor["sub"], actor_role=role,
+        settings.database_url, tenant_id=data.tenant_id,
+        actor_sub=actor["sub"], actor_role=role,
         source_ip=request.client.host if request.client else None,
         device=None, action=data.action, object_ref=data.object_ref,
         before_hash=data.before_hash, after_hash=data.after_hash, result=data.result,
@@ -61,11 +63,13 @@ def submit_audit_event(
 
 @app.get("/v1/audit/verify", tags=["audit"])
 def verify_audit(
+    tenant_id: UUID,
     actor: Annotated[dict, Depends(current_actor)],
     settings: Annotated[Settings, Depends(get_settings)],
 ):
     require_roles(actor, {"auditor", "security_admin"})
-    return verify_chain(settings.database_url)
+    return verify_chain(settings.database_url, tenant_id=tenant_id,
+                        actor_sub=actor["sub"] )
 
 
 # EDARMS WP1: generic PoC approval inbox. Does not approve any records/destruction.
