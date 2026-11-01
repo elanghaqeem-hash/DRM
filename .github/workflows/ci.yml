@@ -29,6 +29,9 @@ jobs:
           cyclonedx-py environment -o sbom.json --of JSON
       - uses: actions/upload-artifact@v4
         with: {name: sbom, path: sbom.json}
+      - name: Ensure stacked-PR base history is available to secret scanner
+        if: github.event_name == 'pull_request'
+        run: git fetch origin "$GITHUB_BASE_REF"
       - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
