@@ -69,3 +69,11 @@ Semua perubahan penting proyek Digital Records Management dicatat dalam berkas i
 ### EDARMS production readiness roadmap — 2026-10-31
 - Added `docs/roadmap/EDARMS-PRODUCTION-READINESS-2026-10-31.md`: prioritized WP00–WP09, 62 submenu/414 action coverage, Bank-controlled go-live gates, tenant/SSO/AV/WORM/JRA/hold/disposition/restore requirements, UAT journeys, proposed schedule and responsibility matrix.
 - Roadmap is advisory only; does not activate production, approve Bank JRA, merge PRs, or demonstrate UAT/infrastructure readiness.
+
+### EDARMS WP00–WP04 critical path, controlled draft and restore — 2026-11-01
+- Implemented tenant RLS-controlled JRA evidence registry (application read-only), independent legal hold apply/release and immutable hold events, deterministic retention appraisal, multi-actor proposal/review/approval for disposition with **destruction and external object deletion still prohibited**.
+- Alembic 0004 protects original versions and legacy statuses; Alembic 0005 adds DB-enforced approved classification + mandatory metadata for DRAFT-only record creation and append-only evidence.
+- Exposed scoped API for approved classes, DRAFT records, retention preview, legal holds and disposition review; sensitive transitions include configurable MFA assurance checks.
+- Added synthetic unit/integration tests for multi-hold, tenant boundary, policy, maker-checker and actual isolated pg_dump/pg_restore. Verification counts and latest CI run are tracked in PR #4.
+- Added CLI production evidence gate for 62 submenu/414 actions. **No action has Bank UAT PASS** merely by adding its design entry.
+- Production: **NO-GO**. Bank-approved tenancy migration, SSO/MFA, AV/KMS/WORM, operational JRA/signatures, original capture, independent VA/PT, Bank DR/restore and all 62/414 E2E remain pending. PR #3 has divergent migration history; reconcile before merge.
