@@ -268,18 +268,27 @@ def decide_disposition(db: str, tenant_id: UUID, case_id: UUID, actor: str,
                 raise HTTPException(
                     status_code=409, detail={"retention_blockers": appraisal["reasons"]}
                 )
-            field = ("reviewed_by" if action in ("REVIEWED", "REJECTED")
-                     else "approved_by")
-            date_field = ("reviewed_at" if action in ("REVIEWED", "REJECTED")
-                          else "approved_at")
-            # field identifiers are fixed from internal action enum, never user SQL.
-            result = conn.execute(
-                f"""UPDATE edarms_disposition_case
-                    SET status=%s,version=version+1,{field}=%s,{date_field}=now()
-                    WHERE tenant_id=%s AND id=%s AND version=%s
-                    RETURNING id,status,version""",
-                (action, actor, tenant_id, case_id, expected_version),
-            ).fetchone()
+            # Fixed SQL statements keep both values AND identifiers out of string
+            # interpolation; this also ensures the independent approval columns
+            # cannot be selected via user-controlled values.
+            if action == "APPROVED":
+                result = conn.execute(
+                    """UPDATE edarms_disposition_case
+                       SET status=%s,version=version+1,
+                           approved_by=%s,approved_at=now()
+                       WHERE tenant_id=%s AND id=%s AND version=%s
+                       RETURNING id,status,version""",
+                    (action, actor, tenant_id, case_id, expected_version),
+                ).fetchone()
+            else:
+                result = conn.execute(
+                    """UPDATE edarms_disposition_case
+                       SET status=%s,version=version+1,
+                           reviewed_by=%s,reviewed_at=now()
+                       WHERE tenant_id=%s AND id=%s AND version=%s
+                       RETURNING id,status,version""",
+                    (action, actor, tenant_id, case_id, expected_version),
+                ).fetchone()
             if not result:
                 raise HTTPException(status_code=409, detail="Concurrent disposition decision")
             conn.execute(
