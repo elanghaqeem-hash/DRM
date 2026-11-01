@@ -25,6 +25,7 @@ def _start_scope(conn: psycopg.Connection, tenant_id: UUID, actor_sub: str) -> s
         raise HTTPException(status_code=503, detail="Unsafe database identity: RLS bypass")
     # LOCAL setting lasts only for this transaction and is used by FORCE RLS.
     conn.execute("SELECT set_config('edarms.tenant_id', %s, true)", (str(tenant_id),))
+    conn.execute("SELECT set_config('edarms.actor_sub', %s, true)", (actor_sub,))
     rows = conn.execute(
         """SELECT role_code FROM edarms_membership
            WHERE tenant_id=%s AND actor_sub=%s AND enabled=true""",
