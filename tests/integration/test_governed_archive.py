@@ -5,7 +5,7 @@ be used as evidence of Bank production sign-off, real destruction or real WORM.
 """
 import os
 from datetime import date, timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import psycopg
 import pytest
@@ -123,15 +123,15 @@ def test_review_blocked_by_multi_holds_and_permissions():
     assert "ACTIVE_LEGAL_HOLD" in blocked.value.detail["retention_blockers"]
 
     with pytest.raises(HTTPException) as self_release:
-        release_hold(url, tenant, first["hold_id"], "legal-maker", "Self release")
+        release_hold(url, tenant, UUID(first["hold_id"]), "legal-maker", "Self release")
     assert self_release.value.status_code == 403
-    assert release_hold(url, tenant, first["hold_id"], "legal-checker",
+    assert release_hold(url, tenant, UUID(first["hold_id"]), "legal-checker",
                         "Independent review")["status"] == "RELEASED"
     assert record_appraisal(url, tenant, record_id, "records-maker")[
         "active_hold_count"
     ] == 1
 
-    assert release_hold(url, tenant, second["hold_id"], "legal-maker",
+    assert release_hold(url, tenant, UUID(second["hold_id"]), "legal-maker",
                         "Another independent review")["status"] == "RELEASED"
     assert record_appraisal(url, tenant, record_id, "records-maker")[
         "state"
@@ -146,20 +146,20 @@ def test_review_blocked_by_multi_holds_and_permissions():
                             "Duplicate pending request must be denied")
     assert duplicate.value.status_code == 409
     with pytest.raises(HTTPException) as wrong_actor:
-        decide_disposition(url, tenant, case["id"], "records-maker",
+        decide_disposition(url, tenant, UUID(case["id"]), "records-maker",
                            "REVIEWED", 1, "Cannot self-review")
     assert wrong_actor.value.status_code == 403
 
-    reviewed = decide_disposition(url, tenant, case["id"], "records-reviewer",
+    reviewed = decide_disposition(url, tenant, UUID(case["id"]), "records-reviewer",
                                   "REVIEWED", 1, "Separate records reviewer")
     assert reviewed["status"] == "REVIEWED"
-    approved = decide_disposition(url, tenant, case["id"], "records-approver",
+    approved = decide_disposition(url, tenant, UUID(case["id"]), "records-approver",
                                   "APPROVED", 2, "Separate final reviewer")
     assert approved["status"] == "APPROVED"
     assert approved["physical_deletion_performed"] is False
     assert approved["destruction_authorized"] is False
     with pytest.raises(HTTPException) as stale:
-        decide_disposition(url, tenant, case["id"], "records-approver",
+        decide_disposition(url, tenant, UUID(case["id"]), "records-approver",
                            "APPROVED", 2, "Stale approval")
     assert stale.value.status_code == 409
 
@@ -167,7 +167,7 @@ def test_review_blocked_by_multi_holds_and_permissions():
         events = admin.execute(
             """SELECT action FROM edarms_disposition_event
                WHERE tenant_id=%s AND case_id=%s ORDER BY id""",
-            (tenant, case["id"]),
+            (tenant, UUID(case["id"])),
         ).fetchall()
         assert [r[0] for r in events] == ["PROPOSED", "REVIEWED", "APPROVED"]
         with pytest.raises(psycopg.errors.RaiseException):
@@ -192,7 +192,7 @@ def test_hold_applied_after_proposal_blocks_review():
     apply_hold(url, tenant, record_id, "legal-maker", "LATE-CASE",
                "Synthetic late hold", "New hold after proposal")
     with pytest.raises(HTTPException) as stopped:
-        decide_disposition(url, tenant, proposal["id"], "records-reviewer",
+        decide_disposition(url, tenant, UUID(proposal["id"]), "records-reviewer",
                            "REVIEWED", 1, "Must recheck hold before review")
     assert stopped.value.status_code == 409
     assert "ACTIVE_LEGAL_HOLD" in stopped.value.detail["retention_blockers"]
