@@ -13,6 +13,9 @@ from pydantic import BaseModel, Field
 from services.api.settings import Settings, get_settings
 from services.access.oidc import current_actor, require_roles, require_recent_mfa
 from services.audit.store import append_event, verify_chain
+from services.retention.governed import (
+    record_appraisal, apply_hold, release_hold, propose_disposition, decide_disposition,
+)
 
 app = FastAPI(title="DRM Bank — Sprint 0 PoC", version="0.1.0",
               description="Non-production skeleton; Bank controls pending approval.")
@@ -128,9 +131,91 @@ def workspace_decide_task(
     settings: Annotated[Settings, Depends(get_settings)],
 ):
     require_recent_mfa(actor, settings)
-    require_recent_mfa(actor, settings)
     return decide_task(settings.database_url, data.tenant_id, task_id, actor["sub"],
                        data.decision, data.expected_version, data.reason)
+
+
+# WP04 governed records: appraisal is never permission to destroy.
+# Real Bank policy, live SSO, WORM and externally witnessed DR remain release gates.
+
+
+class HoldApplyIn(BaseModel):
+    tenant_id: UUID
+    case_ref: str = Field(min_length=2, max_length=200)
+    legal_basis: str = Field(min_length=2, max_length=500)
+    reason: str = Field(min_length=4, max_length=1000)
+
+
+class HoldReleaseIn(BaseModel):
+    tenant_id: UUID
+    reason: str = Field(min_length=4, max_length=1000)
+
+
+class DispositionProposeIn(BaseModel):
+    tenant_id: UUID
+    record_id: UUID
+    reason: str = Field(min_length=8, max_length=1000)
+
+
+class DispositionDecisionIn(BaseModel):
+    tenant_id: UUID
+    action: Literal["REVIEWED", "APPROVED", "REJECTED"]
+    expected_version: int = Field(ge=1)
+    reason: str = Field(min_length=4, max_length=1000)
+
+
+@app.get("/v1/archives/{record_id}/retention-preview", tags=["records"])
+def preview_archive_retention(
+    record_id: UUID, tenant_id: UUID,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    return record_appraisal(settings.database_url, tenant_id, record_id, actor["sub"])
+
+
+@app.post("/v1/archives/{record_id}/legal-holds", tags=["legal"], status_code=201)
+def apply_archive_legal_hold(
+    record_id: UUID, data: HoldApplyIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    require_recent_mfa(actor, settings)
+    return apply_hold(settings.database_url, data.tenant_id, record_id, actor["sub"],
+                      data.case_ref, data.legal_basis, data.reason)
+
+
+@app.post("/v1/legal-holds/{hold_id}/release", tags=["legal"])
+def independently_release_legal_hold(
+    hold_id: UUID, data: HoldReleaseIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    require_recent_mfa(actor, settings)
+    return release_hold(settings.database_url, data.tenant_id, hold_id, actor["sub"],
+                        data.reason)
+
+
+@app.post("/v1/dispositions", tags=["retention"], status_code=201)
+def propose_archive_disposition(
+    data: DispositionProposeIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    require_recent_mfa(actor, settings)
+    return propose_disposition(settings.database_url, data.tenant_id,
+                               data.record_id, actor["sub"], data.reason)
+
+
+@app.post("/v1/dispositions/{case_id}/decision", tags=["retention"])
+def review_archive_disposition(
+    case_id: UUID, data: DispositionDecisionIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    require_recent_mfa(actor, settings)
+    return decide_disposition(settings.database_url, data.tenant_id, case_id,
+                              actor["sub"], data.action, data.expected_version,
+                              data.reason)
 
 
 # Static PoC shell contains no secrets or synthetic bank records.
