@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from services.api.settings import Settings, get_settings
 from services.access.oidc import current_actor, require_roles, require_recent_mfa
 from services.audit.store import append_event, verify_chain
+from services.records.drafts import list_approved_classes, create_controlled_draft
 from services.retention.governed import (
     record_appraisal, apply_hold, release_hold, propose_disposition, decide_disposition,
 )
@@ -133,6 +134,39 @@ def workspace_decide_task(
     require_recent_mfa(actor, settings)
     return decide_task(settings.database_url, data.tenant_id, task_id, actor["sub"],
                        data.decision, data.expected_version, data.reason)
+
+
+# WP02 governed draft capture: no upload, declaration or retention activation.
+
+
+class DraftCreateIn(BaseModel):
+    tenant_id: UUID
+    class_id: UUID
+    title: str = Field(min_length=1, max_length=300)
+    owner_unit: str = Field(min_length=1, max_length=200)
+    metadata: dict
+
+
+@app.get("/v1/records/classes", tags=["records"])
+def approved_archive_classes(
+    tenant_id: UUID,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    return list_approved_classes(settings.database_url, tenant_id, actor["sub"])
+
+
+@app.post("/v1/records/drafts", tags=["records"], status_code=201)
+def create_archive_draft(
+    data: DraftCreateIn,
+    actor: Annotated[dict, Depends(current_actor)],
+    settings: Annotated[Settings, Depends(get_settings)],
+):
+    require_recent_mfa(actor, settings)
+    return create_controlled_draft(
+        settings.database_url, data.tenant_id, data.class_id,
+        actor["sub"], data.title, data.owner_unit, data.metadata,
+    )
 
 
 # WP04 governed records: appraisal is never permission to destroy.
