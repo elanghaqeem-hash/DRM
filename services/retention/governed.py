@@ -68,12 +68,12 @@ def _assess(conn: psycopg.Connection, tenant_id: UUID, record_id: UUID) -> dict:
             JOIN legal_hold_scope scope
              ON scope.tenant_id=h.tenant_id AND scope.hold_id=h.id
             WHERE h.tenant_id=%s AND h.status='ACTIVE'
-              AND scope.record_id=%s),
+              AND scope.record_id=%s) AS active_count,
            (SELECT count(DISTINCT h.id) FROM legal_hold h
             JOIN legal_hold_scope scope
              ON scope.tenant_id=h.tenant_id AND scope.hold_id=h.id
             WHERE h.tenant_id=%s AND h.status='ACTIVE'
-              AND scope.saved_query IS NOT NULL)""",
+              AND scope.saved_query IS NOT NULL) AS dynamic_count""",
         (tenant_id, record_id, tenant_id),
     ).fetchone()
     facts = AppraisalFacts(
@@ -87,14 +87,14 @@ def _assess(conn: psycopg.Connection, tenant_id: UUID, record_id: UUID) -> dict:
         evidence_ref=row["evidence_ref"],
         evidence_effective_from=row["evidence_from"],
         evidence_effective_until=row["evidence_until"],
-        active_record_holds=hold_counts[0],
-        unresolved_tenant_query_holds=hold_counts[1],
+        active_record_holds=hold_counts["active_count"],
+        unresolved_tenant_query_holds=hold_counts["dynamic_count"],
     )
     return {
         **appraisal_decision(facts, date.today()),
         "tenant_id": str(tenant_id), "record_id": str(record_id),
-        "active_hold_count": hold_counts[0],
-        "unresolved_dynamic_holds": hold_counts[1],
+        "active_hold_count": hold_counts["active_count"],
+        "unresolved_dynamic_holds": hold_counts["dynamic_count"],
         "evidence_registered": bool(row["evidence_ref"]),
     }
 
