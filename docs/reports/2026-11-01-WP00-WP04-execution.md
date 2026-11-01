@@ -49,3 +49,9 @@
 
 ## Go/no-go
 **NO-GO** for real Bank data, legal destruction and production deployment until external P0 release gates pass. No Bank secrets, actual approved JRA, operational IdP/bucket/ClamAV, source-system data or Bank DR environment were available during this run.
+
+## Subsequent WP02 controlled-draft vertical slice (same implementation branch)
+- Alembic `0005_controlled_drafts` now enforces tenant + signed actor provenance, approved classification, required metadata configuration, security defaults and **draft-only** status at database INSERT boundary; generates append-only metadata digest events and restricts app runtime to INSERT drafts, not content versions or record declarations.
+- `services/records/drafts.py` and API `GET /v1/records/classes`, `POST /v1/records/drafts`: DB-backed approved file plan lookup and authenticated draft creation, provisional DRAFT identifiers only; never issues official Bank archive numbering or asserts capture/AV/WORM success.
+- `tests/integration/test_governed_drafts.py` adds synthetic positive/negative PostgreSQL tests for mandatory metadata, cross-tenant denial, unauthorized role, draft event, and rejection of attempts to insert DECLARED originals directly.
+- Full WP02 master-data governance (draft→review→approve→effective version) and full WP03 file capture are **NOT COMPLETE**. Keep physical content uploading, QA declaration and official numbering disabled pending Bank rules and actual protected storage integration.
